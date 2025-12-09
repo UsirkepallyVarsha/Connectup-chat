@@ -4,8 +4,6 @@ import { API } from "../api";
 import { useTranslation } from "react-i18next";
 import i18n from "i18next";
 
-const socket = io();
-
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition || null;
 
@@ -16,48 +14,92 @@ function ChatBox({ currentUser, otherUser }) {
   const [connected, setConnected] = useState(false);
   const [listening, setListening] = useState(false);
   const messagesEndRef = useRef(null);
+  const socketRef = useRef(null);
 
+  // Initialize socket ONCE and store in ref
   useEffect(() => {
-    if (!currentUser) return;
+    if (!socketRef.current) {
+      socketRef.current = io(
+        process.env.REACT_APP_SOCKET_URL || "http://localhost:5000"
+      );
+    }
 
-    socket.on("connect", () => {
+    const socket = socketRef.current;
+
+    const handleConnect = () => {
+      console.log("✅ Socket connected:", socket.id);
       setConnected(true);
-      socket.emit("join", currentUser._id);
-    });
+      if (currentUser) {
+        console.log("📤 Emitting join for user:", currentUser._id);
+        socket.emit("join", currentUser._id);
+      }
+    };
 
-    socket.on("private_message", (msg) => {
+    const handlePrivateMessage = (msg) => {
+      console.log("📨 Received private_message:", msg);
       if (
         !otherUser ||
         !(
           (msg.from === currentUser._id && msg.to === otherUser._id) ||
           (msg.from === otherUser._id && msg.to === currentUser._id)
         )
-      )
+      ) {
+        console.log("❌ Message filtered out (not for this conversation)");
         return;
+      }
 
       setMessages((prev) => {
-        if (prev.some((m) => m._id === msg._id)) return prev;
+        if (prev.some((m) => m._id === msg._id)) {
+          console.log("⚠️ Duplicate message, skipping");
+          return prev;
+        }
+        console.log("✅ Adding message to state");
         return [...prev, msg];
       });
-    });
+    };
 
-    socket.on("message_deleted", ({ id }) => {
+    const handleMessageDeleted = ({ id }) => {
+      console.log("🗑️ Message deleted:", id);
       setMessages((prev) => prev.filter((m) => m._id !== id));
-    });
+    };
+
+    const handleDisconnect = () => {
+      console.log("❌ Socket disconnected");
+      setConnected(false);
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("private_message", handlePrivateMessage);
+    socket.on("message_deleted", handleMessageDeleted);
+    socket.on("disconnect", handleDisconnect);
+
+    // If already connected, trigger join
+    if (socket.connected && currentUser) {
+      console.log("📤 Socket already connected, emitting join:", currentUser._id);
+      socket.emit("join", currentUser._id);
+      setConnected(true);
+    }
 
     return () => {
-      socket.off("connect");
-      socket.off("private_message");
-      socket.off("message_deleted");
+      socket.off("connect", handleConnect);
+      socket.off("private_message", handlePrivateMessage);
+      socket.off("message_deleted", handleMessageDeleted);
+      socket.off("disconnect", handleDisconnect);
     };
   }, [currentUser, otherUser]);
 
   useEffect(() => {
     const loadHistory = async () => {
       if (!currentUser || !otherUser) return;
+      console.log("📥 Loading message history with:", otherUser._id);
       const data = await API.getMessagesWith(otherUser._id);
-      if (Array.isArray(data)) setMessages(data);
-      else setMessages([]);
+      if (Array.isArray(data)) {
+        console.log("✅ Loaded", data.length, "messages");
+        setMessages(data);
+      } else {
+        console.log("❌ No messages or error");
+        setMessages([]);
+      }
     };
     loadHistory();
   }, [currentUser, otherUser]);
@@ -70,11 +112,20 @@ function ChatBox({ currentUser, otherUser }) {
     e.preventDefault();
     if (!input.trim() || !currentUser || !otherUser) return;
 
-    socket.emit("private_message", {
+    const socket = socketRef.current;
+    if (!socket) {
+      console.error("❌ Socket not initialized");
+      return;
+    }
+
+    const messageData = {
       from: currentUser._id,
       to: otherUser._id,
       content: input.trim(),
-    });
+    };
+
+    console.log("📤 Sending private_message:", messageData);
+    socket.emit("private_message", messageData);
     setInput("");
   };
 
@@ -124,11 +175,7 @@ function ChatBox({ currentUser, otherUser }) {
   };
 
   const handleDeleteMessage = async (id) => {
-    if (
-      !window.confirm(
-        t("confirmDeleteMessage") || "Delete this message?"
-      )
-    )
+    if (!window.confirm(t("confirmDeleteMessage") || "Delete this message?"))
       return;
     await API.deleteMessage(id);
     setMessages((prev) => prev.filter((m) => m._id !== id));
@@ -140,8 +187,9 @@ function ChatBox({ currentUser, otherUser }) {
     "bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950";
 
   return (
-    <div className={`relative flex h-[600px] max-w-3xl w-full ${gradientBg} rounded-3xl shadow-[0_18px_45px_rgba(15,23,42,0.9)] border border-white/5 overflow-hidden`}>
-
+    <div
+      className={`relative flex h-[600px] max-w-3xl w-full ${gradientBg} rounded-3xl shadow-[0_18px_45px_rgba(15,23,42,0.9)] border border-white/5 overflow-hidden`}
+    >
       {/* background glow */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_#4f46e5_0,_transparent_55%),_radial-gradient(circle_at_bottom,_#22d3ee_0,_transparent_55%)] opacity-40" />
 
@@ -214,8 +262,7 @@ function ChatBox({ currentUser, otherUser }) {
             const avatarUrl = isMine
               ? currentUser.avatarUrl
               : otherUser.avatarUrl;
-            const fallbackLetter =
-              nameToShow?.charAt(0)?.toUpperCase() || "?";
+            const fallbackLetter = nameToShow?.charAt(0)?.toUpperCase() || "?";
 
             const statusText = m.seen
               ? `✔✔ ${t("seen") || "Seen"}`
@@ -322,29 +369,28 @@ function ChatBox({ currentUser, otherUser }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
             />
-            <button
-              type="button"
-              className={`ml-1 rounded-full p-1.5 text-lg ${
-                listening
-                  ? "bg-rose-500/90 text-white shadow shadow-rose-500/40 animate-pulse"
-                  : "text-cyan-300 hover:bg-slate-800/80"
-              } transition`}
-              onClick={handleVoiceInput}
-            >
-              🎤
-            </button>
-          </div>
-
-          <button
-            className="btn btn-sm border-0 rounded-2xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-lg shadow-indigo-500/40 hover:from-indigo-400 hover:to-cyan-400"
-            type="submit"
-          >
-            {t("send")}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-export default ChatBox;
+                        <button
+                          type="button"
+                          className={`ml-1 rounded-full p-1.5 text-lg ${
+                            listening
+                              ? "bg-rose-500/90 text-white shadow shadow-rose-500/40 animate-pulse"
+                              : "text-cyan-300 hover:bg-slate-800/80"
+                          } transition`}
+                          onClick={handleVoiceInput}
+                        >
+                          🎤
+                        </button>
+                      </div>
+                      <button
+                        type="submit"
+                        className="btn btn-sm btn-primary rounded-full bg-gradient-to-r from-indigo-500 to-cyan-500 border-0 text-white hover:from-indigo-600 hover:to-cyan-600"
+                      >
+                        {t("send") || "Send"}
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              );
+            }
+            
+            export default ChatBox;

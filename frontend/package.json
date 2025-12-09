@@ -8,7 +8,7 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
     "daisyui": "^5.5.5",
-    "i18next": "^25.7.1",
+    "i18next": "^25.5.2",
     "i18next-browser-languagedetector": "^8.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -17,12 +17,15 @@
     "socket.io-client": "^4.8.1",
     "web-vitals": "^2.1.4"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
+"scripts": {
+  "start": "react-scripts start",
+  "build": "react-scripts build",
+  "vercel-build": "npm install --legacy-peer-deps && npm run build",
+  "test": "react-scripts test",
+  "eject": "react-scripts eject"
+}
+
+,
   "proxy": "http://localhost:5000",
   "eslintConfig": {
     "extends": [
