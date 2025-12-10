@@ -20,7 +20,10 @@ function ChatBox({ currentUser, otherUser }) {
   useEffect(() => {
     if (!socketRef.current) {
       socketRef.current = io(
-        process.env.REACT_APP_SOCKET_URL || "http://localhost:5000"
+        process.env.REACT_APP_SOCKET_URL || "https://connectup-chat-2.onrender.com",{
+  transports: ["websocket"]
+}
+       
       );
     }
 

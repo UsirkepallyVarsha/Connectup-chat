@@ -18,7 +18,15 @@ const server = http.createServer(app);
 // CORS for normal HTTP API
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://connectup-chat-onhz.vercel.app"],
+   origin: [
+  "http://localhost:3000",
+  "https://connectup-chat-onhz.vercel.app",
+  "https://connectup-chat.vercel.app",
+  "https://connectup.vercel.app",
+  "https://your-exact-frontend-url.vercel.app"
+],
+credentials: true,
+
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
 );
