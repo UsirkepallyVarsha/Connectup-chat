@@ -15,18 +15,15 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 const server = http.createServer(app);
 
-// CORS for normal HTTP API
 app.use(
   cors({
-   origin: [
-  "http://localhost:3000",
-  "https://connectup-chat-onhz.vercel.app",
-  "https://connectup-chat.vercel.app",
-  "https://connectup.vercel.app",
-  "https://your-exact-frontend-url.vercel.app"
-],
-credentials: true,
-
+    origin: [
+      "http://localhost:3000",
+      "https://connectup-chat-onhz.vercel.app",
+      "https://connectup-chat.vercel.app",
+      "https://connectup.vercel.app",
+    ],
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
 );
@@ -36,7 +33,6 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 connectDB();
 
-// ROUTES
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/profile", require("./routes/profile"));
 app.use("/api/connections", require("./routes/connections"));
@@ -48,24 +44,33 @@ app.get("/", (req, res) => {
   res.send("API running");
 });
 
-// SOCKET.IO with same origins
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://connectup-chat-onhz.vercel.app"],
+    origin: [
+      "http://localhost:3000",
+      "https://connectup-chat-onhz.vercel.app",
+      "https://connectup-chat.vercel.app",
+      "https://connectup.vercel.app",
+    ],
     methods: ["GET", "POST"],
   },
 });
 
-// simple in-memory map of online users: userId -> socketId
 const onlineUsers = new Map();
 
 io.on("connection", (socket) => {
-  // GROUPS
+  console.log("🔵 NEW SOCKET CONNECTION:", socket.id);
+
   socket.on("join_group", (groupId) => {
-    if (groupId) socket.join(groupId);
+    console.log("🏠 JOIN GROUP:", groupId, socket.id);
+    if (groupId) {
+      socket.join(groupId);
+      console.log("✅ Joined group:", groupId);
+    }
   });
 
   socket.on("group_message", async ({ groupId, from, content }) => {
+    console.log("📣 GROUP MSG:", { groupId, from, content });
     try {
       const msgDoc = await GroupMessage.create({ group: groupId, sender: from, content });
       const payload = {
@@ -75,14 +80,16 @@ io.on("connection", (socket) => {
         content,
         createdAt: msgDoc.createdAt,
       };
+      console.log("💾 Saved, broadcasting to:", groupId);
       io.to(groupId).emit("group_message", payload);
+      console.log("✨ Broadcast done");
     } catch (err) {
-      console.error("Error saving group message:", err.message);
+      console.error("❌ Group msg error:", err.message);
     }
   });
 
-  // PERSONAL CHAT
   socket.on("join", (userId) => {
+    console.log("👤 USER JOIN:", userId, socket.id);
     if (userId) {
       onlineUsers.set(userId, socket.id);
       socket.userId = userId;
@@ -90,9 +97,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("private_message", async ({ from, to, content }) => {
+    console.log("📩 PRIVATE MSG:", { from, to });
     try {
       const msgDoc = await Message.create({ from, to, content });
-
       const payload = {
         _id: msgDoc._id,
         from: msgDoc.from.toString(),
@@ -107,11 +114,12 @@ io.on("connection", (socket) => {
       }
       socket.emit("private_message", payload);
     } catch (err) {
-      console.error("Error saving message:", err.message);
+      console.error("❌ Private msg error:", err.message);
     }
   });
 
   socket.on("disconnect", () => {
+    console.log("🔴 DISCONNECT:", socket.id);
     if (socket.userId) {
       onlineUsers.delete(socket.userId);
     }

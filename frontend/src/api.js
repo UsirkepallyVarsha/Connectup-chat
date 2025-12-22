@@ -1,5 +1,6 @@
 const API_BASE =
   process.env.REACT_APP_API_URL || "https://connectup-chat-2.onrender.com";
+console.log(process.env.REACT_APP_SOCKET_URL);
 
 const getToken = () => localStorage.getItem("token");
 

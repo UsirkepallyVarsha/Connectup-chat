@@ -27,46 +27,59 @@ function LoginPage({ onLogin }) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4 mx-auto mt-6">
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 to-purple-700 px-4">
+    <form
+      onSubmit={handleSubmit}
+      className="w-full max-w-md bg-base-200 rounded-xl shadow-xl p-6 space-y-4"
+    >
+      <h2 className="text-xl font-semibold text-center">
+        {t("Login")}
+      </h2>
 
-        <legend className="fieldset-legend text-lg font-semibold">{t("Login")}</legend>
+      {error && (
+        <div className="alert alert-error py-2 text-sm">
+          <span>{error}</span>
+        </div>
+      )}
 
-        {error && (
-          <div className="alert alert-error py-2 text-sm mt-2">
-            <span>{error}</span>
-          </div>
-        )}
-
-        <label className="label mt-2">{t("email")}</label>
+      <div className="form-control">
+        <label className="label">
+          <span className="label-text">{t("email")}</span>
+        </label>
         <input
           type="email"
-          className="input input-bordered"
+          className="input input-bordered w-full"
           name="email"
           placeholder="you@example.com"
           value={form.email}
           onChange={handleChange}
         />
+      </div>
 
-        <label className="label mt-2">{t("password")}</label>
+      <div className="form-control">
+        <label className="label">
+          <span className="label-text">{t("password")}</span>
+        </label>
         <input
           type="password"
-          className="input input-bordered"
+          className="input input-bordered w-full"
           name="password"
           placeholder="••••••••"
           value={form.password}
           onChange={handleChange}
         />
+      </div>
 
-        <button
-          type="submit"
-          className={`btn btn-neutral w-full mt-4 ${loading ? "loading" : ""}`}
-        >
-          {t("login")}
-        </button>
-      </fieldset>
+      <button
+        type="submit"
+        className={`btn btn-neutral w-full ${loading ? "loading" : ""}`}
+      >
+        {t("login")}
+      </button>
     </form>
-  );
+  </div>
+);
+
 }
 
 export default LoginPage;
