@@ -82,7 +82,7 @@ function App() {
 
       {user ? (
         showWelcome ? (
-          <div className="w-full min-h-[calc(100vh-70px)] flex justify-center items-center px-4">
+          <div className="w-full min-h-[calc(100vh-70px)] flex justify-center items-center px-2 sm:px-4">
             <WelcomePage
               user={user}
               onOpenPeople={() => {
@@ -102,9 +102,9 @@ function App() {
             />
           </div>
         ) : (
-          <div className="max-w-7xl mx-auto px-4 py-6 flex gap-4 h-[calc(100vh-70px)]">
+          <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 flex flex-col md:flex-row gap-4 min-h-[calc(100vh-70px)]">
             {/* LEFT - People / Groups Sidebar */}
-            <div className="w-80 flex-shrink-0">
+            <div className="w-full md:w-80 flex-shrink-0">
               {showPeople && (
                 <PeoplePage
                   onOpenChat={(otherUser) => setActiveChatUser(otherUser)}
@@ -121,11 +121,14 @@ function App() {
                 />
               )}
             </div>
- {showProfile && <ProfilePage />}
+
+            {/* Profile Section */}
+            {showProfile && <ProfilePage />}
+
             {/* RIGHT - Chat / Profile / Placeholder */}
-            <div className="flex-1 flex flex-col">
-            {!activeChatUser && !activeGroup && !showProfile && (
-                <div className="flex-1 flex justify-center items-center bg-base-200 rounded-lg">
+            <div className="flex-1 flex flex-col bg-base-200 rounded-lg p-2 md:p-4">
+              {!activeChatUser && !activeGroup && !showProfile && (
+                <div className="flex-1 flex justify-center items-center">
                   <h2 className="text-center text-base-content/70 p-4 font-semibold">
                     {t("startChatHint") ||
                       "Select a contact to start chatting."}
@@ -135,14 +138,16 @@ function App() {
               {activeChatUser && !activeGroup && (
                 <ChatBox currentUser={user} otherUser={activeChatUser} />
               )}
-              {activeGroup && <GroupChatBox currentUser={user} group={activeGroup} />}
+              {activeGroup && (
+                <GroupChatBox currentUser={user} group={activeGroup} />
+              )}
             </div>
           </div>
         )
       ) : (
         // LOGIN / REGISTER
         <div className="flex flex-col items-center justify-start py-10 gap-4">
-          <div className="card w-full max-w-md bg-gray-500 shadow-2xl">
+          <div className="card w-full max-w-md mx-2 sm:mx-auto bg-gray-500 shadow-2xl">
             <div className="card-body text-white">
               <div className="flex justify-center gap-2 mb-4">
                 <button

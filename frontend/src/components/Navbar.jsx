@@ -6,11 +6,11 @@ function Navbar({ user, onLogout, onOpenProfile, onOpenPeople, onOpenGroups, onR
 
   return (
     <div className="bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-900 text-white shadow-lg">
-      <div className="container mx-auto flex justify-between items-center px-4 py-2">
-        {/* LEFT: Logo */}
+      <div className="container mx-auto flex justify-between items-center px-4 py-2 md:py-3">
+        {/* Logo */}
         <div className="flex-1">
           <button
-            className="text-2xl font-extrabold tracking-wide transition-transform duration-200 hover:scale-105 hover:text-yellow-300"
+            className="text-2xl font-extrabold tracking-wide hover:scale-105 hover:text-yellow-300 transition-transform"
             onClick={() => {
               onOpenProfile(false);
               onOpenPeople(false);
@@ -22,9 +22,8 @@ function Navbar({ user, onLogout, onOpenProfile, onOpenPeople, onOpenGroups, onR
           </button>
         </div>
 
-        {/* RIGHT SIDE */}
+        {/* Buttons / Dropdowns */}
         <div className="flex-none flex items-center gap-2 md:gap-4">
-          {/* HOME BUTTON */}
           <button
             className="btn btn-sm btn-ghost hover:bg-white/20 transition-all"
             onClick={() => {
@@ -37,51 +36,32 @@ function Navbar({ user, onLogout, onOpenProfile, onOpenPeople, onOpenGroups, onR
             🏠 {t("home") || "Home"}
           </button>
 
-          {/* LANGUAGE DROPDOWN */}
+          {/* Language Selector */}
           <div className="dropdown dropdown-end">
-            <label
-              tabIndex={0}
-              className="btn btn-sm btn-ghost hover:bg-white/20 transition-all"
-            >
+            <label tabIndex={0} className="btn btn-sm btn-ghost hover:bg-white/20 transition-all">
               🌐 {t("language")}
             </label>
-            <ul
-              tabIndex={0}
-              className="dropdown-content menu p-2 shadow-xl bg-purple-900 text-white rounded-box w-40 md:w-48"
-            >
+            <ul className="dropdown-content menu p-3 min-w-[160px] shadow-xl bg-purple-900 text-white rounded-box">
               <li>
-                <button
-                  className="hover:bg-purple-600 rounded-md transition"
-                  onClick={() => changeLang("en")}
-                >
+                <button className="hover:bg-purple-600 rounded-md transition" onClick={() => changeLang("en")}>
                   🇺🇸 {t("ENGLISH")}
                 </button>
               </li>
               <li>
-                <button
-                  className="hover:bg-purple-600 rounded-md transition"
-                  onClick={() => changeLang("hi")}
-                >
+                <button className="hover:bg-purple-600 rounded-md transition" onClick={() => changeLang("hi")}>
                   🇮🇳 {t("HINDI")}
                 </button>
               </li>
             </ul>
           </div>
 
-          {/* USER DROPDOWN */}
+          {/* User Dropdown */}
           {user && (
             <div className="dropdown dropdown-end">
-              <label
-                tabIndex={0}
-                className="btn btn-circle btn-ghost hover:scale-105 transition-transform p-0"
-              >
+              <label tabIndex={0} className="btn btn-circle btn-ghost hover:scale-105 transition-transform p-0">
                 <div className="avatar w-10 h-10">
-                  {user?.avatarUrl ? (
-                    <img
-                      src={user.avatarUrl}
-                      alt={user.name || "User"}
-                      className="rounded-full object-cover w-full h-full border border-purple-500"
-                    />
+                  {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.name || "User"} className="rounded-full object-cover w-full h-full border border-purple-500" />
                   ) : (
                     <div className="w-full h-full rounded-full bg-white text-black flex items-center justify-center font-bold border border-purple-500">
                       {user.name?.charAt(0)?.toUpperCase()}
@@ -90,10 +70,7 @@ function Navbar({ user, onLogout, onOpenProfile, onOpenPeople, onOpenGroups, onR
                 </div>
               </label>
 
-              <ul
-                tabIndex={0}
-                className="dropdown-content menu mt-3 p-2 shadow-xl bg-purple-900 text-white rounded-box w-48"
-              >
+              <ul className="dropdown-content menu mt-3 p-3 shadow-xl bg-purple-900 text-white rounded-box min-w-[160px]">
                 <li>
                   <button
                     className="hover:bg-purple-700 transition rounded-md"
@@ -107,12 +84,8 @@ function Navbar({ user, onLogout, onOpenProfile, onOpenPeople, onOpenGroups, onR
                     👤 {t("profile")}
                   </button>
                 </li>
-
                 <li>
-                  <button
-                    className="hover:bg-red-600 hover:text-white text-red-400 transition rounded-md"
-                    onClick={onLogout}
-                  >
+                  <button className="hover:bg-red-600 hover:text-white text-red-400 transition rounded-md" onClick={onLogout}>
                     🚪 {t("logout")}
                   </button>
                 </li>
